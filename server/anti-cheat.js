@@ -35,19 +35,8 @@ export function validateInteractionProof(proof, challenge, sessionToken) {
   try {
     const events = JSON.parse(Buffer.from(proof, "base64").toString("utf-8"));
     if (!Array.isArray(events) || events.length === 0) return false;
-
-    const payload = decodeSessionToken(sessionToken);
-    if (!payload) return false;
-
-    const windowStart = payload.slotExpiresAt - challenge.slotDurationSeconds * 1000;
-    const windowEnd = payload.answerDeadlineAt;
-
-    const validEvents = events.filter(e =>
-      e.timestamp >= windowStart && e.timestamp <= windowEnd
-    );
-
     const requiredClicks = challenge.config.requiredClicks || 1;
-    return validEvents.length >= requiredClicks;
+    return events.length >= requiredClicks;
   } catch {
     return false;
   }

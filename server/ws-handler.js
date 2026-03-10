@@ -152,7 +152,7 @@ function generateRandomCode(digits) {
 function onPaymentConfirmed(ws, challenge, paymentHash, amountSats, poolTotal, isDemo = false) {
   const now = Date.now();
   const slotExpiresAt = now + challenge.slotDurationSeconds * 1000;
-  const answerDeadlineAt = slotExpiresAt + challenge.config.answerWindowSeconds * 1000;
+  const answerDeadlineAt = slotExpiresAt;
 
   const sessionCode = generateRandomCode(challenge.config.digits);
   const sessionToken = generateSessionToken(paymentHash, challenge.id, slotExpiresAt, answerDeadlineAt);
@@ -190,7 +190,7 @@ function onPaymentConfirmed(ws, challenge, paymentHash, amountSats, poolTotal, i
       removeSession(sessionToken);
       send(ws, "hint:expired", { reason: "timeout" });
     }
-  }, (challenge.slotDurationSeconds + challenge.config.answerWindowSeconds) * 1000);
+  }, challenge.slotDurationSeconds * 1000);
 }
 
 async function handleAnswerSubmit(ws, { challengeId, answer, sessionToken, interactionProof, winnerAddress }) {

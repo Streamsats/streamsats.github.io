@@ -88,7 +88,10 @@ on("hint:start", ({ slotDurationSeconds, interactionType, sessionToken, challeng
   const slotExpiresAt = Date.now() + slotDurationSeconds * 1000;
   if (slotTimer) { clearInterval(slotTimer); slotTimer = null; }
   slotTimer = startSlotTimer(slotExpiresAt, () => {
-    setStatus("Tiempo de pista agotado — puedes seguir respondiendo", "warning");
+    if (rendererCleanup) { rendererCleanup(); rendererCleanup = null; }
+    currentSessionToken = null;
+    setStatus("¡Tiempo agotado! No has encontrado el código a tiempo.", "error");
+    setTimeout(() => showSection("lobby-section"), 3000);
   });
 });
 
