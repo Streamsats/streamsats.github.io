@@ -3,9 +3,11 @@
  * Un solo reto activo a la vez, pool acumulado, sesiones de pago.
  */
 
+const MINIMUM_POOL_SATS = 10;
+
 const state = {
   currentChallengeId: null,
-  prizePoolSats: 0,
+  prizePoolSats: MINIMUM_POOL_SATS,
   playersOnline: 0,
   activeSessions: new Map(),   // paymentHash → sessionInfo
   pendingInvoices: new Map(),  // paymentHash → invoiceInfo
@@ -26,7 +28,7 @@ export function addToPool(sats) {
 
 export function resetPool() {
   const old = state.prizePoolSats;
-  state.prizePoolSats = 0;
+  state.prizePoolSats = MINIMUM_POOL_SATS;
   return old;
 }
 
