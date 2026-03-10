@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_BASE_URL: /Streamsats/
+          VITE_BASE_URL: /
           VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
 
       - uses: actions/configure-pages@v4
