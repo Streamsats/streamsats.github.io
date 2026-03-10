@@ -2,7 +2,6 @@ import { connect, on, send } from "./ws-client.js";
 import { updateGameState, animatePool, setStatus, showSection, showVictoryScreen, startSlotTimer } from "./game-ui.js";
 import { showInvoice, hideInvoice, copyInvoice } from "./payment-ui.js";
 import { generateProof, getEventCount } from "./anti-cheat-client.js";
-import { renderVisualPattern } from "./challenge-renderers/visual-pattern.js";
 import { renderHiddenCode } from "./challenge-renderers/hidden-code.js";
 
 let currentSessionToken = null;
@@ -73,9 +72,7 @@ on("hint:start", ({ slotDurationSeconds, interactionType, sessionToken, challeng
 
   const onAnswer = (answer) => submitAnswer(answer);
 
-  if (challengeConfig.type === "visual-pattern") {
-    rendererCleanup = renderVisualPattern(canvas, challengeConfig, sessionToken, onAnswer);
-  } else if (challengeConfig.type === "hidden-code") {
+  if (challengeConfig.type === "hidden-code") {
     rendererCleanup = renderHiddenCode(canvas, challengeConfig, sessionToken, onAnswer);
   }
 
