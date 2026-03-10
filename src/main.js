@@ -64,6 +64,7 @@ on("hint:start", ({ slotDurationSeconds, interactionType, sessionToken, challeng
   currentChallengeType = challengeConfig.type;
   showSection("challenge-section");
   setStatus(`¡Pista activa! Interactuá para revelarla`, "success");
+  showChallengeInstructions(challengeConfig.type);
 
   const canvas = document.getElementById("challenge-canvas");
   if (!canvas) return;
@@ -95,6 +96,14 @@ on("submission:result", ({ correct, message }) => {
   }
 });
 
+on("demo:win", ({ message }) => {
+  if (rendererCleanup) { rendererCleanup(); rendererCleanup = null; }
+  currentSessionToken = null;
+  const screen = document.getElementById("demo-win-screen");
+  if (screen) screen.style.display = "flex";
+  setStatus(message, "success");
+});
+
 on("error", ({ message }) => {
   setStatus("Error: " + message, "error");
 });
@@ -118,6 +127,27 @@ window.submitAnswerManual = function() {
 
 window.copyInvoice = copyInvoice;
 
+window.requestDemo = function() {
+  if (!currentChallengeId) {
+    setStatus("Esperando estado del servidor...", "warning");
+    return;
+  }
+  setStatus("Iniciando demo...", "info");
+  send("demo:request", { challengeId: currentChallengeId });
+};
+
+window.playForReal = function() {
+  window.closeDemoWin();
+  showSection("lobby-section");
+  setStatus("Ingresá tu Lightning Address y pagá para competir por sats reales", "info");
+};
+
+window.closeDemoWin = function() {
+  const screen = document.getElementById("demo-win-screen");
+  if (screen) screen.style.display = "none";
+  showSection("lobby-section");
+};
+
 function submitAnswer(answer) {
   if (!currentSessionToken) {
     setStatus("No tenés sesión activa — pagá primero", "warning");
@@ -133,6 +163,21 @@ function submitAnswer(answer) {
     interactionProof: proof,
     winnerAddress: address
   });
+}
+
+function showChallengeInstructions(type) {
+  const el = document.getElementById("challenge-instructions");
+  if (!el) return;
+  const instructions = {
+    "hidden-code": `
+      <strong style="color:#fff">🔢 Código Oculto — ¿Cómo jugar?</strong><br>
+      Los números del código están ocultos entre ruido visual. Tu misión es encontrarlos.<br>
+      <strong style="color:#fff">Pasá el cursor por el canvas</strong> para revelarlos — aparecerán en el orden en que deben escribirse.<br>
+      Memorizá la secuencia y escribila completa en el campo de respuesta antes de que se acabe el tiempo.
+    `,
+  };
+  el.innerHTML = instructions[type] || "";
+  el.style.display = instructions[type] ? "block" : "none";
 }
 
 // Start

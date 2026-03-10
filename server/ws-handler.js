@@ -85,6 +85,8 @@ function send(ws, event, data) {
 async function handleMessage(ws, event, data) {
   if (event === "payment:request") {
     await handlePaymentRequest(ws, data);
+  } else if (event === "demo:request") {
+    await handleDemoRequest(ws, data);
   } else if (event === "answer:submit") {
     await handleAnswerSubmit(ws, data);
   }
@@ -100,6 +102,15 @@ async function handlePaymentRequest(ws, { challengeId, winnerAddress }) {
   const challenge = getCurrentChallenge();
   if (challenge.id !== challengeId) {
     send(ws, "error", { message: "Challenge ID mismatch — reload the page" });
+    return;
+  }
+
+  // FREE_MODE: skip payment for testing
+  if (process.env.FREE_MODE === "true") {
+    const fakeHash = `free-${Date.now()}`;
+    const { addToPool } = await import("./game-state.js");
+    const poolTotal = addToPool(challenge.pricePerSlotSats);
+    onPaymentConfirmed(ws, challenge, fakeHash, challenge.pricePerSlotSats, poolTotal);
     return;
   }
 
@@ -122,13 +133,23 @@ async function handlePaymentRequest(ws, { challengeId, winnerAddress }) {
   }
 }
 
-function onPaymentConfirmed(ws, challenge, paymentHash, amountSats, poolTotal) {
+async function handleDemoRequest(ws, { challengeId }) {
+  const challenge = getCurrentChallenge();
+  if (challenge.id !== challengeId) {
+    send(ws, "error", { message: "Challenge ID mismatch — reload the page" });
+    return;
+  }
+  const fakeHash = `demo-${Date.now()}`;
+  onPaymentConfirmed(ws, challenge, fakeHash, 0, getState().prizePoolSats, true);
+}
+
+function onPaymentConfirmed(ws, challenge, paymentHash, amountSats, poolTotal, isDemo = false) {
   const now = Date.now();
   const slotExpiresAt = now + challenge.slotDurationSeconds * 1000;
   const answerDeadlineAt = slotExpiresAt + challenge.config.answerWindowSeconds * 1000;
 
   const sessionToken = generateSessionToken(paymentHash, challenge.id, slotExpiresAt, answerDeadlineAt);
-  addSession(sessionToken, { challengeId: challenge.id, paymentHash, slotExpiresAt, answerDeadlineAt });
+  addSession(sessionToken, { challengeId: challenge.id, paymentHash, slotExpiresAt, answerDeadlineAt, isDemo });
 
   // Broadcast pool update to all
   broadcastFn("pool:updated", { prizePoolSats: poolTotal, delta: amountSats });
@@ -193,7 +214,15 @@ async function handleAnswerSubmit(ws, { challengeId, answer, sessionToken, inter
   }
 
   // WINNER!
+  const session = getSession(sessionToken);
   removeSession(sessionToken);
+
+  // Demo mode: show win but no payout
+  if (session?.isDemo) {
+    send(ws, "demo:win", { message: "¡Correcto! En modo real ganarías sats. ¿Jugás con dinero real?" });
+    return;
+  }
+
   const state = getState();
   const prizePoolSats = state.prizePoolSats;
   const { resetPool } = await import("./game-state.js");

@@ -305,6 +305,9 @@
       <button class="btn-primary" onclick="window.requestSlot()">
         ⚡ Pagar y jugar
       </button>
+      <button class="btn-secondary" onclick="window.requestDemo()" style="font-size:0.85rem;padding:10px">
+        🎮 Probar gratis (demo)
+      </button>
 
       <hr>
 
@@ -347,9 +350,12 @@
             Pagá un slot para ver la pista del reto actual.<br>
             El bote crece con cada jugador. ¡Primero que responde gana!
           </div>
-          <div style="max-width:280px;margin:0 auto">
+          <div style="max-width:280px;margin:0 auto;display:flex;flex-direction:column;gap:8px">
             <button class="btn-primary" onclick="window.requestSlot()">
               ⚡ Entrar al reto
+            </button>
+            <button class="btn-secondary" onclick="window.requestDemo()" style="font-size:0.85rem">
+              🎮 Probar gratis (demo)
             </button>
           </div>
         </div>
@@ -357,6 +363,7 @@
 
       <!-- Challenge section -->
       <div id="challenge-section" class="game-section">
+        <div id="challenge-instructions" class="card" style="font-size:0.85rem;color:var(--muted);line-height:1.6;padding:14px 18px"></div>
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
             <strong>Reto activo</strong>
@@ -376,6 +383,17 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Demo win overlay -->
+  <div id="demo-win-screen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:20px;padding:24px">
+    <div style="font-size:4rem">🎉</div>
+    <div style="font-size:1.8rem;font-weight:900;color:#00ff9d">¡Lo lograste en modo demo!</div>
+    <div style="color:rgba(255,255,255,0.7);font-size:1rem;max-width:360px">En una partida real habrías ganado sats del bote acumulado por otros jugadores.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px">
+      <button class="btn-primary" onclick="window.playForReal()" style="font-size:1.1rem">⚡ Jugar con sats reales</button>
+      <button class="btn-secondary" onclick="window.closeDemoWin()">Volver al lobby</button>
     </div>
   </div>
 
