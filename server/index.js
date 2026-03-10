@@ -8,7 +8,7 @@ import { testNWCConnection } from "./nwc.js";
 
 dotenv.config();
 
-const PORT = parseInt(process.env.SERVER_PORT || "3001");
+const PORT = parseInt(process.env.PORT || process.env.SERVER_PORT || "3001");
 
 const app = express();
 app.use(express.json());

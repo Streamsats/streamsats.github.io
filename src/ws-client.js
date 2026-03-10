@@ -2,7 +2,7 @@
  * WebSocket client con reconexión automática.
  */
 
-const WS_URL = `ws://${window.location.hostname}:3002`;
+const WS_URL = import.meta.env.VITE_WS_URL || `ws://${window.location.hostname}:3002`;
 const RECONNECT_DELAY_MS = 3000;
 
 let ws = null;
