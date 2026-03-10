@@ -1,14 +1,14 @@
 {
-  "id": "hc-001",
+  "id": "hc-004",
   "type": "hidden-code",
   "title": "Código Oculto",
   "pricePerSlotSats": 10,
   "slotDurationSeconds": 20,
-  "answerHash": "00be1be68e3e1231b9f749d9105c2b568c2f9346265453762ffc924eb08bfe6a",
+  "answerHash": "ee056a074da02d43c96eff7714aed111923c3f63fa9c349adef96cdac429ea49",
   "config": {
-    "seed": 99,
+    "seed": 381,
     "digits": 10,
-    "code": "4728361059",
+    "code": "1739485026",
     "noiseDensity": 0.8,
     "flashCount": 3,
     "flashDurationMs": 300,

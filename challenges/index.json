@@ -1,4 +1,9 @@
 {
-  "rotation": ["hidden-code-001"],
+  "rotation": [
+    "hidden-code-001", "hidden-code-002", "hidden-code-003", "hidden-code-004", "hidden-code-005",
+    "hidden-code-006", "hidden-code-007", "hidden-code-008", "hidden-code-009", "hidden-code-010",
+    "hidden-code-011", "hidden-code-012", "hidden-code-013", "hidden-code-014", "hidden-code-015",
+    "hidden-code-016", "hidden-code-017", "hidden-code-018", "hidden-code-019", "hidden-code-020"
+  ],
   "currentIndex": 0
 }
