@@ -114,10 +114,10 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer) {
     ctx.font = "11px monospace";
     ctx.fillText("Escribe el código y pulsa Enter", canvas.width / 2, canvas.height - 8);
 
-    requestAnimationFrame(draw);
+    animFrameId = requestAnimationFrame(draw);
   }
 
-  requestAnimationFrame(draw);
+  let animFrameId = requestAnimationFrame(draw);
 
   // Hover detection
   canvas.onmousemove = (e) => {
@@ -152,6 +152,7 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer) {
   document.addEventListener("keydown", onKeydown);
 
   return () => {
+    cancelAnimationFrame(animFrameId);
     canvas.onmousemove = null;
     document.removeEventListener("keydown", onKeydown);
     stopRecording();

@@ -10,6 +10,7 @@ let currentChallengeType = null;
 let currentChallengeConfig = null;
 let rendererCleanup = null;
 let slotTimer = null;
+let lobbyRedirectTimer = null;
 let iWon = false;
 
 // WebSocket events
@@ -68,6 +69,7 @@ on("payment:confirmed", ({ sessionToken, slotExpiresAt }) => {
 });
 
 on("hint:start", ({ slotDurationSeconds, interactionType, sessionToken, challengeConfig }) => {
+  if (lobbyRedirectTimer) { clearTimeout(lobbyRedirectTimer); lobbyRedirectTimer = null; }
   currentChallengeConfig = challengeConfig;
   currentChallengeType = challengeConfig.type;
   showSection("challenge-section");
@@ -91,7 +93,7 @@ on("hint:start", ({ slotDurationSeconds, interactionType, sessionToken, challeng
     if (rendererCleanup) { rendererCleanup(); rendererCleanup = null; }
     currentSessionToken = null;
     setStatus("¡Tiempo agotado! No has encontrado el código a tiempo.", "error");
-    setTimeout(() => showSection("lobby-section"), 3000);
+    lobbyRedirectTimer = setTimeout(() => showSection("lobby-section"), 3000);
   });
 });
 
