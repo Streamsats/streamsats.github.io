@@ -114,6 +114,11 @@ on("error", ({ message }) => {
 // DOM Actions
 window.requestSlot = function() {
   const address = document.getElementById("winner-address")?.value?.trim();
+  if (!address || !address.includes("@")) {
+    setStatus("Ingresá tu Lightning Address para poder recibir el premio", "error");
+    document.getElementById("winner-address")?.focus();
+    return;
+  }
   if (!currentChallengeId) {
     setStatus("Esperando estado del servidor...", "warning");
     return;
