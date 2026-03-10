@@ -24,7 +24,7 @@ on("ws:disconnected", () => {
 
 function updateMobilePool(sats) {
   const el = document.getElementById("mobile-prize-pool");
-  if (el) el.textContent = Math.floor(sats * 0.9).toLocaleString();
+  if (el) el.textContent = sats.toLocaleString();
 }
 
 on("game:state", (data) => {

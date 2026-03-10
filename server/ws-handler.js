@@ -109,7 +109,7 @@ async function handlePaymentRequest(ws, { challengeId, winnerAddress }) {
   if (process.env.FREE_MODE === "true") {
     const fakeHash = `free-${Date.now()}`;
     const { addToPool } = await import("./game-state.js");
-    const poolTotal = addToPool(challenge.pricePerSlotSats);
+    const poolTotal = addToPool(Math.floor(challenge.pricePerSlotSats * 0.9));
     onPaymentConfirmed(ws, challenge, fakeHash, challenge.pricePerSlotSats, poolTotal);
     return;
   }
@@ -238,7 +238,7 @@ async function handleAnswerSubmit(ws, { challengeId, answer, sessionToken, inter
   const clientInfo = clients.get(ws);
   const lnAddress = winnerAddress || clientInfo?.winnerAddress;
 
-  send(ws, "submission:result", { correct: true, message: `¡Ganaste ${Math.floor(prizePoolSats * 0.9)} sats!` });
+  send(ws, "submission:result", { correct: true, message: `¡Ganaste ${prizePoolSats} sats!` });
 
   // Pay winner
   let paidSats = 0;
@@ -247,7 +247,7 @@ async function handleAnswerSubmit(ws, { challengeId, answer, sessionToken, inter
     paidSats = payResult.payoutSats || 0;
   } else {
     console.log("⚠️  Ganador sin Lightning Address — no se puede pagar automáticamente");
-    paidSats = Math.floor(prizePoolSats * 0.9);
+    paidSats = prizePoolSats;
   }
 
   // Advance to next challenge

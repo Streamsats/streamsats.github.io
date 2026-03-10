@@ -17,7 +17,7 @@ export function updateGameState({ challengeId, title, type, prizePoolSats, playe
 export function animatePool(targetSats) {
   clearInterval(poolAnimTimer);
   const start = displayedPool;
-  const diff = Math.floor(targetSats * 0.9) - start;
+  const diff = targetSats - start;
   if (diff === 0) return;
 
   const steps = Math.min(Math.abs(diff), 30);

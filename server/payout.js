@@ -3,14 +3,11 @@ import { getNWCClient } from "./nwc.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const COMMISSION = parseInt(process.env.COMMISSION_PERCENT || "10");
-
 export async function payWinner(winnerLightningAddress, prizePoolSats) {
-  const payoutSats = Math.floor(prizePoolSats * (1 - COMMISSION / 100));
+  const payoutSats = prizePoolSats; // commission already retained at payment time
   const client = getNWCClient();
 
   console.log(`💰 Payout: ${payoutSats} sats → ${winnerLightningAddress}`);
-  console.log(`   (Pool: ${prizePoolSats} sats, comisión: ${COMMISSION}%)`);
 
   if (!client) {
     console.log("[mock] Payout simulado (no NWC configurado)");
