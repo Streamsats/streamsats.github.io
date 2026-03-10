@@ -76,7 +76,7 @@ export function startPollingInvoice(paymentHash, onPaid) {
     if (!info) { clearInterval(timer); return; }
 
     try {
-      const result = await client.lookupInvoice({ paymentHash });
+      const result = await client.lookupInvoice({ payment_hash: paymentHash });
       if (result.settledAt || result.state === "SETTLED" || result.preimage) {
         clearInterval(timer);
         info.paid = true;
