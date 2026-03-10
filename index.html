@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ StreamSats — Gana Bitcoin resolviendo retos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0f1a;
+      --surface: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.1);
+      --accent: #00ff9d;
+      --accent2: #ffc800;
+      --text: #fff;
+      --muted: rgba(255,255,255,0.5);
+      --red: #ef4444;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.3);
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; }
+    .logo span { color: var(--accent); }
+
+    /* ── Prize Pool Hero ── */
+    .pool-hero {
+      text-align: center;
+      padding: 40px 20px 24px;
+      background: linear-gradient(180deg, rgba(0,255,157,0.05) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    .pool-label { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .pool-amount {
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 900;
+      color: var(--accent);
+      transition: transform 0.1s;
+      font-variant-numeric: tabular-nums;
+    }
+    .pool-amount.pool-flash { transform: scale(1.04); color: #fff; }
+    .pool-unit { font-size: 1.5rem; color: var(--muted); margin-left: 8px; }
+    .pool-sub { color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
+
+    /* ── Layout ── */
+    .main {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 0;
+      flex: 1;
+    }
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+
+    /* ── Status bar ── */
+    .status-bar {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: rgba(255,255,255,0.07);
+      border-left: 3px solid transparent;
+    }
+    .status-success { border-color: var(--accent); color: var(--accent); background: rgba(0,255,157,0.08); }
+    .status-error { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.08); }
+    .status-warning { border-color: var(--accent2); color: var(--accent2); background: rgba(255,200,0,0.08); }
+    .status-info { border-color: #60a5fa; color: #93c5fd; background: rgba(96,165,250,0.08); }
+
+    /* ── Buttons ── */
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: opacity 0.15s, transform 0.1s;
+      padding: 12px 20px;
+      width: 100%;
+    }
+    button:hover { opacity: 0.9; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00ff9d 0%, #00cc7d 100%);
+      color: #000;
+      font-size: 1.1rem;
+      padding: 14px;
+    }
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    /* ── Input ── */
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+    input::placeholder { color: var(--muted); }
+
+    /* ── Game sections ── */
+    .game-area {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .game-section { display: none; }
+    .game-section.active { display: block; }
+
+    /* ── Challenge canvas ── */
+    #challenge-canvas {
+      width: 100%;
+      max-width: 560px;
+      height: 340px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* ── Answer section ── */
+    .answer-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .answer-row input { margin-bottom: 0; flex: 1; }
+    .answer-row button { width: auto; padding: 10px 20px; }
+
+    /* ── Payment section ── */
+    #payment-section { display: none; }
+    #payment-section.active { display: block; }
+
+    #qr-container {
+      display: flex;
+      justify-content: center;
+      margin: 12px 0;
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      width: fit-content;
+    }
+
+    .invoice-text {
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      word-break: break-all;
+      background: rgba(0,0,0,0.3);
+      padding: 8px;
+      border-radius: 6px;
+      margin: 8px 0;
+      max-height: 60px;
+      overflow: hidden;
+    }
+
+    /* ── Slot info ── */
+    .slot-info {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .slot-badge {
+      background: rgba(255,200,0,0.1);
+      border: 1px solid rgba(255,200,0,0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      color: var(--accent2);
+    }
+
+    /* ── Players / timer ── */
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── Victory overlay ── */
+    #victory-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+    }
+    #victory-screen.show { display: flex; }
+    .victory-emoji { font-size: 5rem; }
+    .victory-amount { font-size: 4rem; font-weight: 900; color: var(--accent); }
+    .victory-label { color: var(--muted); font-size: 1.1rem; }
+    .victory-next { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── Timer ── */
+    #slot-timer {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Separator ── */
+    hr { border: none; border-top: 1px solid var(--border); }
+  </style>
+  <script type="module" crossorigin src="/assets/index-CUMDnoSo.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">⚡ Stream<span>Sats</span></div>
+    <div class="meta-row" style="gap:16px">
+      <span id="players-online" style="color:var(--muted);font-size:0.85rem">Conectando...</span>
+      <span id="slot-timer" style="display:none"></span>
+    </div>
+  </header>
+
+  <!-- Prize Pool Hero -->
+  <div class="pool-hero">
+    <div class="pool-label">Bote acumulado</div>
+    <div>
+      <span class="pool-amount" id="prize-pool">0</span>
+      <span class="pool-unit">sats</span>
+    </div>
+    <div class="pool-sub" id="challenge-title">Cargando reto...</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Status -->
+      <div id="status-bar" class="status-bar status-info">Conectando...</div>
+
+      <!-- Challenge info -->
+      <div class="card">
+        <h3>Reto actual</h3>
+        <div style="margin-bottom:8px">
+          <strong id="challenge-title-side">—</strong>
+          <div style="color:var(--muted);font-size:0.8rem;margin-top:4px" id="challenge-type">—</div>
+        </div>
+        <div class="slot-info">
+          <span class="slot-badge">⚡ <span id="slot-price">—</span></span>
+        </div>
+      </div>
+
+      <!-- Lightning Address input -->
+      <div class="card">
+        <h3>Tu Lightning Address</h3>
+        <input type="text" id="winner-address" placeholder="tu@wallet.com" autocomplete="off">
+        <div style="color:var(--muted);font-size:0.75rem">Para recibir el premio si ganás</div>
+      </div>
+
+      <!-- Pay to play -->
+      <button class="btn-primary" onclick="window.requestSlot()">
+        ⚡ Pagar y jugar
+      </button>
+      <button class="btn-secondary" onclick="window.requestDemo()" style="font-size:0.85rem;padding:10px">
+        🎮 Probar gratis (demo)
+      </button>
+
+      <hr>
+
+      <!-- How to play -->
+      <div style="font-size:0.8rem;color:var(--muted);line-height:1.6">
+        <div style="color:var(--text);font-weight:600;margin-bottom:6px">¿Cómo jugar?</div>
+        <p>1. Ingresa tu Lightning Address</p>
+        <p>2. Paga el slot en sats</p>
+        <p>3. Interactúa con la pista</p>
+        <p>4. Envía la respuesta correcta</p>
+        <p style="margin-top:6px;color:var(--accent)">¡El primero en acertar gana el bote!</p>
+        <p style="margin-top:4px;color:var(--muted)">Comisión del 10% por operación</p>
+      </div>
+    </aside>
+
+    <!-- Game area -->
+    <div class="game-area">
+
+      <!-- Payment section (overlay-style) -->
+      <div id="payment-section" class="card">
+        <h3>Pagar invoice</h3>
+        <div style="font-size:0.9rem;margin-bottom:10px">
+          Monto: <strong id="invoice-amount">—</strong>
+          &nbsp;|&nbsp;
+          <span id="invoice-timer" style="color:var(--muted)"></span>
+        </div>
+        <div id="qr-container"></div>
+        <div id="invoice-text" class="invoice-text"></div>
+        <button class="btn-secondary" id="copy-invoice-btn" onclick="window.copyInvoice()" style="margin-top:6px">
+          Copiar invoice
+        </button>
+      </div>
+
+      <!-- Lobby section -->
+      <div id="lobby-section" class="game-section active">
+        <div class="card" style="text-align:center;padding:48px 20px">
+          <div style="font-size:3rem;margin-bottom:16px">🎮</div>
+          <div style="font-size:1.3rem;font-weight:700;margin-bottom:8px">¿Listo para competir?</div>
+          <div style="color:var(--muted);margin-bottom:24px">
+            Paga un slot para ver la pista del reto actual.<br>
+            El bote crece con cada jugador. ¡El primero en responder gana!
+          </div>
+          <div style="max-width:280px;margin:0 auto;display:flex;flex-direction:column;gap:8px">
+            <button class="btn-primary" onclick="window.requestSlot()">
+              ⚡ Entrar al reto
+            </button>
+            <button class="btn-secondary" onclick="window.requestDemo()" style="font-size:0.85rem">
+              🎮 Probar gratis (demo)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Challenge section -->
+      <div id="challenge-section" class="game-section">
+        <div id="challenge-instructions" class="card" style="font-size:0.85rem;color:var(--muted);line-height:1.6;padding:14px 18px"></div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <strong>Reto activo</strong>
+            <span id="slot-timer-inline" style="color:var(--accent2);font-weight:700"></span>
+          </div>
+          <canvas id="challenge-canvas" width="560" height="340"></canvas>
+          <div class="answer-row" style="margin-top:16px">
+            <input type="text" id="answer-input" placeholder="Tu respuesta..." autocomplete="off">
+            <button class="btn-secondary" style="width:auto;padding:10px 20px" onclick="window.submitAnswerManual()">
+              Enviar
+            </button>
+          </div>
+          <div style="color:var(--muted);font-size:0.75rem;margin-top:6px">
+            Para visual-pattern: escribe los colores separados por guion (ej: red-blue-green-yellow)<br>
+            Para hidden-code: escribe los 4 dígitos y presiona Enter
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Other player won overlay -->
+  <div id="other-won-screen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:16px;padding:24px">
+    <div style="font-size:4rem">😔</div>
+    <div style="font-size:1.6rem;font-weight:900;color:#ffc800">Otro jugador ganó</div>
+    <div id="other-won-amount" style="color:rgba(255,255,255,0.6);font-size:1rem"></div>
+    <div style="color:rgba(255,255,255,0.4);font-size:0.9rem">Nuevo reto en <span id="other-won-countdown">5</span>s</div>
+  </div>
+
+  <!-- Mobile warning -->
+  <div id="mobile-warning" style="display:none;position:fixed;inset:0;background:#0a0f1a;z-index:999;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:32px;gap:16px">
+    <div style="font-size:4rem">🖥️</div>
+    <div style="font-size:1.4rem;font-weight:900;color:#fff">Este juego requiere ordenador</div>
+    <div style="color:rgba(255,255,255,0.6);font-size:0.95rem;max-width:300px">El reto necesita ratón para revelar los dígitos ocultos. Ábrelo desde un PC para poder jugar.</div>
+    <div style="background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.25);border-radius:14px;padding:16px 32px;margin-top:8px">
+      <div style="color:rgba(255,255,255,0.5);font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">Bote acumulado</div>
+      <div style="color:#00ff9d;font-size:2rem;font-weight:900"><span id="mobile-prize-pool">—</span> sats</div>
+    </div>
+    <div style="color:#00ff9d;font-size:0.85rem;margin-top:4px">streamsats.github.io</div>
+  </div>
+
+  <!-- Result popup -->
+  <div id="result-popup" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center">
+    <div id="result-popup-box" style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:40px 48px;text-align:center;max-width:360px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.6)">
+      <div id="result-popup-icon" style="font-size:4rem;margin-bottom:16px"></div>
+      <div id="result-popup-title" style="font-size:1.5rem;font-weight:900;margin-bottom:8px"></div>
+      <div id="result-popup-msg" style="color:rgba(255,255,255,0.6);font-size:0.95rem;margin-bottom:24px"></div>
+      <button onclick="window.closeResultPopup()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;padding:10px 28px;font-size:0.95rem;font-weight:600;cursor:pointer">
+        Continuar
+      </button>
+    </div>
+  </div>
+
+  <!-- Demo win overlay -->
+  <div id="demo-win-screen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:20px;padding:24px">
+    <div style="font-size:4rem">🎉</div>
+    <div style="font-size:1.8rem;font-weight:900;color:#00ff9d">¡Lo lograste en modo demo!</div>
+    <div style="color:rgba(255,255,255,0.7);font-size:1rem;max-width:360px">En una partida real habrías ganado sats del bote acumulado por otros jugadores.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px">
+      <button class="btn-primary" onclick="window.playForReal()" style="font-size:1.1rem">⚡ Jugar con sats reales</button>
+      <button class="btn-secondary" onclick="window.closeDemoWin()">Volver al lobby</button>
+    </div>
+  </div>
+
+  <!-- Victory overlay -->
+  <div id="victory-screen">
+    <div class="victory-emoji">🏆</div>
+    <div class="victory-amount" id="victory-sats">0</div>
+    <div class="victory-label">sats ganados</div>
+    <div class="victory-next">Próximo reto en <span id="victory-countdown">5</span>s</div>
+  </div>
+
+  <script>
+    if (/Mobi|Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent) || window.innerWidth < 768) {
+      document.getElementById('mobile-warning').style.display = 'flex';
+    }
+  </script>
+
+  <script>
+    // Sync slot timer to sidebar header
+    const observer = new MutationObserver(() => {
+      const inline = document.getElementById('slot-timer');
+      const header = document.querySelector('header #slot-timer');
+      // both are same element — no duplication needed
+    });
+  </script>
+</body>
+</html>
