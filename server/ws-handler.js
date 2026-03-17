@@ -4,6 +4,7 @@ import { getCurrentChallenge, getChallengeById, advanceChallenge } from "./chall
 import { createSlotInvoice, startPollingInvoice } from "./invoice-manager.js";
 import { generateSessionToken, validateSessionToken, validateInteractionProof } from "./anti-cheat.js";
 import { payWinner, } from "./payout.js";
+import { renderDigitImage } from "./digit-renderer.js";
 
 const clients = new Map(); // ws → { id, winnerAddress }
 
@@ -87,6 +88,8 @@ async function handleMessage(ws, event, data) {
     await handlePaymentRequest(ws, data);
   } else if (event === "demo:request") {
     await handleDemoRequest(ws, data);
+  } else if (event === "zone:reveal") {
+    handleZoneReveal(ws, data);
   } else if (event === "answer:submit") {
     await handleAnswerSubmit(ws, data);
   }
@@ -143,6 +146,52 @@ async function handleDemoRequest(ws, { challengeId }) {
   onPaymentConfirmed(ws, challenge, fakeHash, 0, getState().prizePoolSats, true);
 }
 
+function handleZoneReveal(ws, { zoneIndex, sessionToken }) {
+  if (!sessionToken) {
+    send(ws, "error", { message: "Missing sessionToken" });
+    return;
+  }
+
+  const validation = validateSessionToken(sessionToken);
+  if (!validation.valid) {
+    send(ws, "error", { message: "Sesión inválida o expirada" });
+    return;
+  }
+
+  const session = getSession(sessionToken);
+  if (!session) {
+    send(ws, "error", { message: "Sesión no encontrada" });
+    return;
+  }
+
+  const idx = parseInt(zoneIndex, 10);
+  if (isNaN(idx) || idx < 0 || idx >= session.code.length) {
+    send(ws, "error", { message: "Índice de zona inválido" });
+    return;
+  }
+
+  // Force sequential reveal
+  if (idx !== session.revealedZones.size) {
+    send(ws, "error", { message: "Debes revelar las zonas en orden" });
+    return;
+  }
+
+  session.revealedZones.add(idx);
+  const digit = session.code[idx];
+  const seed = simpleHashServer(sessionToken + idx);
+  const buffer = renderDigitImage(digit, seed);
+
+  send(ws, "zone:revealed", { zoneIndex: idx, imageData: buffer.toString("base64") });
+}
+
+function simpleHashServer(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
 function generateRandomCode(digits) {
   let code = "";
   for (let i = 0; i < digits; i++) code += Math.floor(Math.random() * 10);
@@ -178,8 +227,7 @@ function onPaymentConfirmed(ws, challenge, paymentHash, amountSats, poolTotal, i
       noiseDensity: challenge.config.noiseDensity,
       flashCount: challenge.config.flashCount,
       flashDurationMs: challenge.config.flashDurationMs,
-      digits: challenge.config.digits,
-      code: sessionCode
+      digits: challenge.config.digits
     }
   });
 

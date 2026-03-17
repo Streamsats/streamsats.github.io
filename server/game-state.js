@@ -49,6 +49,7 @@ export function removePendingInvoice(paymentHash) {
 }
 
 export function addSession(sessionToken, info) {
+  info.revealedZones = new Set();
   state.activeSessions.set(sessionToken, info);
 }
 

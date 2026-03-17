@@ -1,4 +1,4 @@
-import { connect, on, send } from "./ws-client.js";
+import { connect, on, off, send } from "./ws-client.js";
 import { updateGameState, animatePool, setStatus, showSection, showVictoryScreen, startSlotTimer } from "./game-ui.js";
 import { showInvoice, hideInvoice, copyInvoice } from "./payment-ui.js";
 import { generateProof, getEventCount } from "./anti-cheat-client.js";
@@ -92,7 +92,7 @@ on("hint:start", ({ slotDurationSeconds, interactionType, sessionToken, challeng
   const onAnswer = (answer) => submitAnswer(answer);
 
   if (challengeConfig.type === "hidden-code") {
-    rendererCleanup = renderHiddenCode(canvas, challengeConfig, sessionToken, onAnswer);
+    rendererCleanup = renderHiddenCode(canvas, challengeConfig, sessionToken, onAnswer, { send, on, off });
   }
 
   const slotExpiresAt = Date.now() + slotDurationSeconds * 1000;

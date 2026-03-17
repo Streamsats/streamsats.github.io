@@ -1,28 +1,43 @@
 /**
  * Renderer: hidden-code
  * Dígitos ocultos en ruido visual que aparecen al pasar el cursor sobre zonas específicas.
+ * Los dígitos se reciben como imágenes PNG del servidor (nunca como texto).
  */
 import { recordEvent, startRecording, stopRecording } from "../anti-cheat-client.js";
 
-export function renderHiddenCode(canvas, config, sessionToken, onAnswer) {
+export function renderHiddenCode(canvas, config, sessionToken, onAnswer, wsBridge) {
   const ctx = canvas.getContext("2d");
-  const { seed, digits: numDigits, noiseDensity, flashCount, flashDurationMs } = config;
+  const { seed, digits: numDigits, noiseDensity } = config;
 
-  // Fixed code from server, per-session reveal zone positions
+  // Per-session reveal zone positions (no code on client)
   const sessionSeed = simpleHash(seed + sessionToken);
-  const code = config.code || generateCode(numDigits, sessionSeed);
-  const revealZones = generateRevealZones(canvas.width, canvas.height, code.length, sessionSeed);
+  const revealZones = generateRevealZones(canvas.width, canvas.height, numDigits, sessionSeed);
 
   let revealed = new Set();
+  let revealedImages = new Array(numDigits).fill(null);
+  let pendingReveal = false;
   let inputCode = "";
-  let flashPhase = 0;
-  let lastFlash = 0;
-  const FLASH_INTERVAL = 3000; // flash every 3 seconds
 
   startRecording();
 
   // Draw noise
   const noiseData = generateNoise(canvas.width, canvas.height, noiseDensity, sessionSeed);
+
+  // Listen for server responses
+  function onZoneRevealed(data) {
+    const { zoneIndex, imageData } = data;
+    const img = new Image();
+    img.onload = () => {
+      revealedImages[zoneIndex] = img;
+      revealed.add(zoneIndex);
+      pendingReveal = false;
+    };
+    img.onerror = () => {
+      pendingReveal = false;
+    };
+    img.src = "data:image/png;base64," + imageData;
+  }
+  wsBridge.on("zone:revealed", onZoneRevealed);
 
   function draw(ts = 0) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -34,37 +49,15 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer) {
     // Noise layer
     drawNoise(ctx, noiseData, canvas.width, canvas.height);
 
-    // Hint: flash digits briefly
-    if (ts - lastFlash > FLASH_INTERVAL && flashPhase < flashCount * 2) {
-      if (flashPhase % 2 === 0) {
-        // Show digits briefly
-        revealZones.forEach((zone, i) => {
-          ctx.fillStyle = "#fff";
-          ctx.font = "bold 32px monospace";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(code[i], zone.x, zone.y);
-        });
-        setTimeout(() => flashPhase++, flashDurationMs);
-      } else {
-        flashPhase++;
-        if (flashPhase % 2 === 0) lastFlash = ts;
-      }
-    }
-
     // Reveal zones: highlight if hovering
     revealZones.forEach((zone, i) => {
-      if (revealed.has(i)) {
-        // Permanently revealed
+      if (revealed.has(i) && revealedImages[i]) {
+        // Permanently revealed — draw server image
         ctx.fillStyle = "rgba(0, 255, 157, 0.15)";
         ctx.beginPath();
         ctx.arc(zone.x, zone.y, zone.r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#00ff9d";
-        ctx.font = "bold 32px monospace";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(code[i], zone.x, zone.y);
+        ctx.drawImage(revealedImages[i], zone.x - 32, zone.y - 32, 64, 64);
       } else {
         // Anonymous circle — subtle but findable
         ctx.fillStyle = "rgba(255,255,255,0.07)";
@@ -119,8 +112,10 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer) {
 
   let animFrameId = requestAnimationFrame(draw);
 
-  // Hover detection
+  // Hover detection — requests digit image from server
   canvas.onmousemove = (e) => {
+    if (pendingReveal) return;
+
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
@@ -132,7 +127,8 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer) {
       const zone = revealZones[nextToReveal];
       const dist = Math.hypot(mx - zone.x, my - zone.y);
       if (dist <= zone.r) {
-        revealed.add(nextToReveal);
+        pendingReveal = true;
+        wsBridge.send("zone:reveal", { zoneIndex: nextToReveal, sessionToken });
         recordEvent("hover", mx, my);
       }
     }
@@ -155,18 +151,9 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer) {
     cancelAnimationFrame(animFrameId);
     canvas.onmousemove = null;
     document.removeEventListener("keydown", onKeydown);
+    wsBridge.off("zone:revealed");
     stopRecording();
   };
-}
-
-function generateCode(digits, seed) {
-  let s = seed;
-  let code = "";
-  for (let i = 0; i < digits; i++) {
-    s = (s * 1664525 + 1013904223) >>> 0;
-    code += s % 10;
-  }
-  return code;
 }
 
 function generateRevealZones(w, h, count, seed) {

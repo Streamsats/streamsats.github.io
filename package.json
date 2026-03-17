@@ -24,6 +24,7 @@
     "node": ">=20.19.0"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.68",
     "@getalby/lightning-tools": "^5.0.0",
     "@getalby/sdk": "^3.0.0",
     "@nostr-dev-kit/ndk": "^2.0.0",
