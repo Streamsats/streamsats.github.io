@@ -84,6 +84,7 @@ function send(ws, event, data) {
 }
 
 async function handleMessage(ws, event, data) {
+  console.log("[ws] message:", event);
   if (event === "payment:request") {
     await handlePaymentRequest(ws, data);
   } else if (event === "demo:request") {

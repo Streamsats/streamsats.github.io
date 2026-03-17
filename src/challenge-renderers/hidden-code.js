@@ -130,7 +130,8 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer, wsBridg
       if (dist <= zone.r) {
         pendingReveal = true;
         console.log("[hidden-code] sending zone:reveal for index", nextToReveal);
-        wsBridge.send("zone:reveal", { zoneIndex: nextToReveal, sessionToken });
+        const sent = wsBridge.send("zone:reveal", { zoneIndex: nextToReveal, sessionToken });
+        console.log("[hidden-code] zone:reveal sent:", sent);
         recordEvent("hover", mx, my);
       }
     }
