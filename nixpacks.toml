@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["fontconfig", "liberation_ttf"]
+nixPkgs = ["nodejs_20", "fontconfig", "liberation_ttf"]
