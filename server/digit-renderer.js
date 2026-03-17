@@ -52,7 +52,7 @@ export function renderDigitImage(digit, seed) {
   const r = 150 + Math.floor(rand() * 60);
   const b = 140 + Math.floor(rand() * 50);
   ctx.fillStyle = `rgb(${r},${g},${b})`;
-  ctx.font = `bold ${28 + Math.floor(rand() * 10)}px monospace`;
+  ctx.font = `bold ${28 + Math.floor(rand() * 10)}px "Liberation Mono", "DejaVu Sans Mono", monospace, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
