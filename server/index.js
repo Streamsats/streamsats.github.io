@@ -91,7 +91,7 @@ server.on("error", (err) => {
 });
 
 server.listen(PORT, async () => {
-  console.log(`\n⚡ StreamSats server running on http://localhost:${PORT}`);
+  console.log(`\n⚡ StreamSats server running on http://localhost:${PORT} [build: ${new Date().toISOString()}]`);
   console.log(`   REST API: http://localhost:${PORT}/api/state`);
   console.log(`   WebSocket: ws://localhost:${PORT}\n`);
 

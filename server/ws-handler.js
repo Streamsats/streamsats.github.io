@@ -50,6 +50,7 @@ export function setupWebSocket(server) {
     ws.on("message", (raw) => {
       try {
         const { event, data } = JSON.parse(raw);
+        console.log("[ws] raw msg:", event);
         handleMessage(ws, event, data);
       } catch (err) {
         console.error("[ws] parse error:", err.message);
