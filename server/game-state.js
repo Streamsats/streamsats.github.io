@@ -3,7 +3,7 @@
  * Un solo reto activo a la vez, pool acumulado, sesiones de pago.
  */
 
-const MINIMUM_POOL_SATS = 10;
+const MINIMUM_POOL_SATS = 0;
 
 const state = {
   currentChallengeId: null,
