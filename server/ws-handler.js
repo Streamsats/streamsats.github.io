@@ -179,9 +179,15 @@ function handleZoneReveal(ws, { zoneIndex, sessionToken }) {
   session.revealedZones.add(idx);
   const digit = session.code[idx];
   const seed = simpleHashServer(sessionToken + idx);
-  const buffer = renderDigitImage(digit, seed);
 
-  send(ws, "zone:revealed", { zoneIndex: idx, imageData: buffer.toString("base64") });
+  try {
+    const buffer = renderDigitImage(digit, seed);
+    send(ws, "zone:revealed", { zoneIndex: idx, imageData: buffer.toString("base64") });
+  } catch (err) {
+    console.error("[zone:reveal] renderDigitImage error:", err.message);
+    session.revealedZones.delete(idx);
+    send(ws, "error", { message: "Error al renderizar dígito: " + err.message });
+  }
 }
 
 function simpleHashServer(str) {
