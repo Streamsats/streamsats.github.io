@@ -25,6 +25,7 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer, wsBridg
 
   // Listen for server responses
   function onZoneRevealed(data) {
+    console.log("[hidden-code] zone:revealed received for index", data?.zoneIndex);
     const { zoneIndex, imageData } = data;
     const img = new Image();
     img.onload = () => {
@@ -128,6 +129,7 @@ export function renderHiddenCode(canvas, config, sessionToken, onAnswer, wsBridg
       const dist = Math.hypot(mx - zone.x, my - zone.y);
       if (dist <= zone.r) {
         pendingReveal = true;
+        console.log("[hidden-code] sending zone:reveal for index", nextToReveal);
         wsBridge.send("zone:reveal", { zoneIndex: nextToReveal, sessionToken });
         recordEvent("hover", mx, my);
       }

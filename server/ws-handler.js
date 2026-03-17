@@ -147,6 +147,7 @@ async function handleDemoRequest(ws, { challengeId }) {
 }
 
 function handleZoneReveal(ws, { zoneIndex, sessionToken }) {
+  console.log("[zone:reveal] received zoneIndex:", zoneIndex, "token:", sessionToken?.slice(0, 20));
   if (!sessionToken) {
     send(ws, "error", { message: "Missing sessionToken" });
     return;
@@ -182,6 +183,7 @@ function handleZoneReveal(ws, { zoneIndex, sessionToken }) {
 
   try {
     const buffer = renderDigitImage(digit, seed);
+    console.log("[zone:reveal] sending image for digit index:", idx);
     send(ws, "zone:revealed", { zoneIndex: idx, imageData: buffer.toString("base64") });
   } catch (err) {
     console.error("[zone:reveal] renderDigitImage error:", err.message);
